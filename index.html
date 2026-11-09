@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tiqmo – Download the app</title>
+<meta name="description" content="Get tiqmo on the App Store, Google Play or AppGallery.">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:title" content="tiqmo – Download the app">
+<meta property="og:description" content="Get tiqmo on the App Store, Google Play or AppGallery.">
+<meta property="og:image" content="https://asifashi.github.io/tiqmo/share.jpg">
+<meta property="og:url" content="https://asifashi.github.io/tiqmo/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+  :root { --blue: #2f7fc4; --ink: #1d2733; --muted: #5d6b7a; --line: #dfe6ee; --bg: #ffffff; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #eef2f6; --muted: #a9b6c3; --line: #2c3743; --bg: #11161c; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); color: var(--ink);
+         font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Arabic", Tahoma, sans-serif; }
+  main { width: 100%; max-width: 360px; padding: 32px 20px; text-align: center; }
+  img { width: 88px; height: 88px; border-radius: 22px; box-shadow: 0 4px 18px rgba(0,0,0,.12); }
+  h1 { font-size: 22px; margin: 16px 0 4px; }
+  p { margin: 0 0 22px; color: var(--muted); font-size: 14px; }
+  a.btn { display: block; margin: 10px 0; padding: 13px 16px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink);
+          text-decoration: none; font-weight: 600; }
+  a.btn:focus-visible, a.btn:hover { border-color: var(--blue); outline: none; }
+  #dbg { margin-top: 18px; font: 12px monospace; color: var(--muted); word-break: break-all; }
+</style>
+</head>
+<body>
+<main>
+  <img src="icon.png" alt="tiqmo">
+  <h1>tiqmo</h1>
+  <p>Opening the app store… &nbsp;·&nbsp; <span dir="rtl" lang="ar">جارٍ فتح متجر التطبيقات…</span></p>
+  <a class="btn" id="b-ios" href="https://apps.apple.com/sa/app/tiqmo/id1664051459">App Store</a>
+  <a class="btn" id="b-play" href="https://play.google.com/store/apps/details?id=com.tiqmo.wallet.ksa.prod">Google Play</a>
+  <a class="btn" id="b-hw" href="https://appgallery.huawei.com/app/C108001045">AppGallery (Huawei)</a>
+  <div id="dbg"></div>
+</main>
+<script>
+(function () {
+  var PKG = "com.tiqmo.wallet.ksa.prod";
+  var IOS = "https://apps.apple.com/sa/app/tiqmo/id1664051459";
+  var PLAY = "https://play.google.com/store/apps/details?id=" + PKG;
+  var HUAWEI = "https://appgallery.huawei.com/app/C108001045";
+  var WEBSITE = "https://tiqmo.com/";   // computers (Windows, Mac, Linux) go to the official website
+
+  var ua = navigator.userAgent || "";
+  var qs = location.search || "";
+
+  // Meta / UTM campaign tags -> Google Play install referrer (shows per campaign in Play Console)
+  var parts = [];
+  qs.replace(/[?&](utm_(?:source|medium|campaign|content|term))=([^&]*)/g, function (m, k, v) {
+    try { v = decodeURIComponent(v.replace(/\+/g, " ")); } catch (e) {}
+    parts.push(k + "=" + v);
+  });
+  var ref = parts.length ? "&referrer=" + encodeURIComponent(parts.join("&")) : "";
+
+  var isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);  // iPads report "Macintosh"
+  var isHuawei = /HUAWEI|HMSCore|HuaweiBrowser|HarmonyOS|OpenHarmony/i.test(ua);
+  var isAndroid = /Android/i.test(ua);
+  var inApp = /FBAN|FBAV|FB_IAB|Instagram|Messenger|Snapchat|musical_ly|TikTok|BytedanceWebview|LinkedInApp|Line\//i.test(ua);
+
+  var target = WEBSITE, why = "computer -> official website";
+  if (isIOS) {
+    target = IOS; why = "iPhone / iPad -> App Store";
+  } else if (isHuawei) {
+    target = HUAWEI; why = "Huawei -> AppGallery";
+  } else if (isAndroid && inApp) {
+    // Facebook / Instagram / TikTok / Snapchat open Play links themselves; intent links are not reliable inside them
+    target = PLAY + ref; why = "Android in-app browser -> Google Play";
+  } else if (isAndroid) {
+    // Opens the Play Store app if the phone has it; if the phone has NO Play Store, the browser goes to AppGallery instead
+    target = "intent://details?id=" + PKG + ref + "#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=" +
+             encodeURIComponent(HUAWEI) + ";end";
+    why = "Android -> Play Store app, or AppGallery if there is no Play Store";
+  }
+  document.getElementById("b-play").href = PLAY + ref;
+
+  if (/[?&]dry=1/.test(qs)) { document.getElementById("dbg").textContent = why + " | " + (target || "-"); return; }
+  if (!target) return;
+  location.replace(target);
+  if (target.indexOf("intent:") === 0) {
+    // the browser ignored the intent link (still on this page after 2.5 s): use the normal Play link
+    setTimeout(function () { if (!document.hidden) location.replace(PLAY + ref); }, 2500);
+  }
+})();
+</script>
+</body>
+</html>
